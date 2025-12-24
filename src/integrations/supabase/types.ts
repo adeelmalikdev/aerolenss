@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          booking_reference: string
+          created_at: string | null
+          flight_data: Json
+          id: string
+          passenger_last_name: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          booking_reference: string
+          created_at?: string | null
+          flight_data: Json
+          id?: string
+          passenger_last_name: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          booking_reference?: string
+          created_at?: string | null
+          flight_data?: Json
+          id?: string
+          passenger_last_name?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      newsletter_subscribers: {
+        Row: {
+          email: string
+          id: string
+          is_active: boolean | null
+          subscribed_at: string | null
+        }
+        Insert: {
+          email: string
+          id?: string
+          is_active?: boolean | null
+          subscribed_at?: string | null
+        }
+        Update: {
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          subscribed_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

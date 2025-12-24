@@ -2,16 +2,17 @@ import { useState } from 'react';
 import { Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { toast } from 'sonner';
+import { useNewsletter } from '@/hooks/useNewsletter';
 
 export function NewsletterSection() {
   const [email, setEmail] = useState('');
+  const { subscribe, loading } = useNewsletter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (email) {
-      toast.success('Thanks for subscribing! You\'ll receive our best deals.');
-      setEmail('');
+      const success = await subscribe(email);
+      if (success) setEmail('');
     }
   };
 
@@ -40,8 +41,9 @@ export function NewsletterSection() {
               variant="secondary"
               size="lg"
               className="h-12 px-8"
+              disabled={loading}
             >
-              Subscribe <Send className="ml-2 h-4 w-4" />
+              {loading ? 'Subscribing...' : 'Subscribe'} <Send className="ml-2 h-4 w-4" />
             </Button>
           </form>
         </div>

@@ -2,6 +2,9 @@ import { useState } from 'react';
 import heroImage from '@/assets/hero-airplane.jpg';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FlightSearchForm } from '@/components/flight/FlightSearchForm';
+import { MyTripForm } from '@/components/flight/MyTripForm';
+import { CheckInForm } from '@/components/flight/CheckInForm';
+import { FlightStatusForm } from '@/components/flight/FlightStatusForm';
 import { Airport, FlightSearchParams } from '@/types/flight';
 
 interface HeroSectionProps {
@@ -74,23 +77,11 @@ export function HeroSection({
             />
           )}
 
-          {activeTab === 'my-trip' && (
-            <div className="py-12 text-center text-muted-foreground">
-              <p>Enter your booking reference to manage your trip</p>
-            </div>
-          )}
+          {activeTab === 'my-trip' && <MyTripForm />}
 
-          {activeTab === 'check-in' && (
-            <div className="py-12 text-center text-muted-foreground">
-              <p>Online check-in opens 24 hours before departure</p>
-            </div>
-          )}
+          {activeTab === 'check-in' && <CheckInForm />}
 
-          {activeTab === 'flight-status' && (
-            <div className="py-12 text-center text-muted-foreground">
-              <p>Check real-time flight status and updates</p>
-            </div>
-          )}
+          {activeTab === 'flight-status' && <FlightStatusForm />}
         </div>
       </div>
     </section>
