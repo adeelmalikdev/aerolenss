@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Users, ArrowRightLeft, Search } from 'lucide-react';
+import { Calendar as CalendarIcon, Users, ArrowRightLeft, Search, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -9,13 +9,24 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AirportInput } from './AirportInput';
 import { Airport, FlightSearchParams } from '@/types/flight';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
 
 interface FlightSearchFormProps {
   onSearch: (params: FlightSearchParams) => void;
+  onSaveSearch?: (origin: Airport, destination: Airport) => void;
   loading?: boolean;
+  initialOrigin?: string;
+  initialDestination?: string;
 }
 
-export function FlightSearchForm({ onSearch, loading }: FlightSearchFormProps) {
+export function FlightSearchForm({ 
+  onSearch, 
+  onSaveSearch,
+  loading,
+  initialOrigin,
+  initialDestination 
+}: FlightSearchFormProps) {
+  const { user } = useAuth();
   const [tripType, setTripType] = useState<'one-way' | 'round-trip'>('round-trip');
   const [origin, setOrigin] = useState<Airport | null>(null);
   const [destination, setDestination] = useState<Airport | null>(null);
@@ -26,6 +37,16 @@ export function FlightSearchForm({ onSearch, loading }: FlightSearchFormProps) {
   const [infants, setInfants] = useState(0);
   const [cabinClass, setCabinClass] = useState<'ECONOMY' | 'PREMIUM_ECONOMY' | 'BUSINESS' | 'FIRST'>('ECONOMY');
   const [passengersOpen, setPassengersOpen] = useState(false);
+
+  // Handle URL-based initial values
+  useEffect(() => {
+    if (initialOrigin && !origin) {
+      setOrigin({ iataCode: initialOrigin, name: initialOrigin });
+    }
+    if (initialDestination && !destination) {
+      setDestination({ iataCode: initialDestination, name: initialDestination });
+    }
+  }, [initialOrigin, initialDestination]);
 
   const handleSwapAirports = () => {
     const temp = origin;
@@ -51,6 +72,13 @@ export function FlightSearchForm({ onSearch, loading }: FlightSearchFormProps) {
 
   const totalPassengers = adults + children + infants;
   const isValid = origin && destination && departureDate && (tripType === 'one-way' || returnDate);
+  const canSave = origin && destination && user && onSaveSearch;
+
+  const handleSaveSearch = () => {
+    if (origin && destination && onSaveSearch) {
+      onSaveSearch(origin, destination);
+    }
+  };
 
   return (
     <div className="w-full bg-card rounded-xl shadow-lg p-6 space-y-4">
@@ -255,6 +283,18 @@ export function FlightSearchForm({ onSearch, loading }: FlightSearchFormProps) {
             <Search className="h-4 w-4 mr-2" />
             {loading ? 'Searching...' : 'Search'}
           </Button>
+          
+          {canSave && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleSaveSearch}
+              className="h-12 w-12"
+              title="Save this route"
+            >
+              <Heart className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
     </div>

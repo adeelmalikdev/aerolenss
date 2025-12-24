@@ -1,0 +1,226 @@
+import { format, parseISO } from 'date-fns';
+import { Plane, Clock, Luggage, Info, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { FlightOffer, FlightItinerary } from '@/types/flight';
+
+interface FlightDetailsModalProps {
+  flight: FlightOffer | null;
+  dictionaries?: any;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+function parseDuration(duration: string): string {
+  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+  if (!match) return duration;
+  const hours = match[1] || '0';
+  const minutes = match[2] || '0';
+  return `${hours}h ${minutes}m`;
+}
+
+function SegmentDetails({
+  segment,
+  dictionaries,
+  fareDetails,
+}: {
+  segment: any;
+  dictionaries?: any;
+  fareDetails?: any;
+}) {
+  const carrierName = dictionaries?.carriers?.[segment.carrierCode] || segment.carrierCode;
+  const aircraftName = dictionaries?.aircraft?.[segment.aircraft?.code] || segment.aircraft?.code;
+
+  return (
+    <div className="flex gap-4 py-4">
+      <div className="flex flex-col items-center">
+        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+          <Plane className="h-5 w-5 text-primary" />
+        </div>
+        <div className="flex-1 w-px bg-border my-2" />
+        <div className="w-3 h-3 rounded-full bg-primary" />
+      </div>
+
+      <div className="flex-1 space-y-3">
+        <div>
+          <p className="text-lg font-semibold">
+            {format(parseISO(segment.departure.at), 'HH:mm')}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {segment.departure.iataCode}
+            {segment.departure.terminal && ` • Terminal ${segment.departure.terminal}`}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {format(parseISO(segment.departure.at), 'EEE, MMM d, yyyy')}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Clock className="h-4 w-4" />
+          <span>{parseDuration(segment.duration)}</span>
+          <span>•</span>
+          <span>
+            {carrierName} {segment.carrierCode}
+            {segment.number}
+          </span>
+          {aircraftName && (
+            <>
+              <span>•</span>
+              <span>{aircraftName}</span>
+            </>
+          )}
+        </div>
+
+        {fareDetails && (
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">
+              {fareDetails.cabin?.toLowerCase().replace('_', ' ')}
+            </Badge>
+            <span className="text-xs text-muted-foreground">Class {fareDetails.class}</span>
+          </div>
+        )}
+
+        <div>
+          <p className="text-lg font-semibold">
+            {format(parseISO(segment.arrival.at), 'HH:mm')}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {segment.arrival.iataCode}
+            {segment.arrival.terminal && ` • Terminal ${segment.arrival.terminal}`}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ItineraryDetails({
+  itinerary,
+  dictionaries,
+  fareDetailsBySegment,
+  label,
+}: {
+  itinerary: FlightItinerary;
+  dictionaries?: any;
+  fareDetailsBySegment?: any[];
+  label: string;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <h4 className="font-semibold text-foreground">{label}</h4>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Clock className="h-4 w-4" />
+          <span>Total: {parseDuration(itinerary.duration)}</span>
+        </div>
+      </div>
+
+      <div className="divide-y divide-border">
+        {itinerary.segments.map((segment, idx) => {
+          const fareDetails = fareDetailsBySegment?.find(
+            (f) => f.segmentId === String(idx + 1) || f.segmentId === segment.number
+          );
+          return (
+            <SegmentDetails
+              key={idx}
+              segment={segment}
+              dictionaries={dictionaries}
+              fareDetails={fareDetails}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function FlightDetailsModal({
+  flight,
+  dictionaries,
+  open,
+  onOpenChange,
+}: FlightDetailsModalProps) {
+  if (!flight) return null;
+
+  const isRoundTrip = flight.itineraries.length > 1;
+  const travelerPricing = flight.travelerPricings[0];
+  const checkedBagsIncluded = flight.pricingOptions?.includedCheckedBagsOnly;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Flight Details</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* Outbound */}
+          <ItineraryDetails
+            itinerary={flight.itineraries[0]}
+            dictionaries={dictionaries}
+            fareDetailsBySegment={travelerPricing?.fareDetailsBySegment}
+            label="Outbound Flight"
+          />
+
+          {/* Return */}
+          {isRoundTrip && (
+            <>
+              <Separator />
+              <ItineraryDetails
+                itinerary={flight.itineraries[1]}
+                dictionaries={dictionaries}
+                fareDetailsBySegment={travelerPricing?.fareDetailsBySegment}
+                label="Return Flight"
+              />
+            </>
+          )}
+
+          <Separator />
+
+          {/* Price & Info */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total price per person</p>
+                <p className="text-3xl font-bold text-primary">
+                  ${parseFloat(flight.price.grandTotal).toFixed(2)}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-muted-foreground">Base fare</p>
+                <p className="text-lg">${parseFloat(flight.price.base).toFixed(2)}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <Luggage className="h-4 w-4" />
+                <span>{checkedBagsIncluded ? 'Checked bag included' : 'No checked bag'}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Info className="h-4 w-4" />
+                <span>{flight.numberOfBookableSeats} seats left</span>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <Button className="flex-1" onClick={() => onOpenChange(false)}>
+                Book This Flight
+              </Button>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                <X className="h-4 w-4 mr-2" />
+                Close
+              </Button>
+            </div>
+
+            <p className="text-xs text-muted-foreground text-center">
+              Last ticketing date: {flight.lastTicketingDate}
+            </p>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
