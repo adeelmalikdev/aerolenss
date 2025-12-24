@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Plane, Trash2, ArrowRight, Save } from 'lucide-react';
+import { User, Plane, Trash2, ArrowRight, Save, Bell, Ticket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,12 +10,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useSavedSearches } from '@/hooks/useSavedSearches';
+import { useBookings, Booking } from '@/hooks/useBookings';
+import { PriceAlertsList } from '@/components/flight/PriceAlerts';
+import { format } from 'date-fns';
 
 export default function Profile() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading, updateProfile } = useProfile();
   const { savedSearches, loading: searchesLoading, deleteSearch } = useSavedSearches();
+  const { bookings, loading: bookingsLoading } = useBookings();
   
   const [fullName, setFullName] = useState('');
   const [saving, setSaving] = useState(false);
@@ -113,6 +117,51 @@ export default function Profile() {
           </CardContent>
         </Card>
 
+        {/* Bookings Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Ticket className="h-5 w-5" />
+              My Bookings
+            </CardTitle>
+            <CardDescription>Your flight bookings and reservations</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {bookingsLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" />
+              </div>
+            ) : bookings.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Ticket className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p>No bookings yet</p>
+                <p className="text-sm">Search and book a flight to see it here</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {bookings.map((booking) => (
+                  <BookingCard key={booking.id} booking={booking} />
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Price Alerts Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Price Alerts
+            </CardTitle>
+            <CardDescription>Get notified when prices drop for your favorite routes</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PriceAlertsList />
+          </CardContent>
+        </Card>
+
         {/* Saved Searches Card */}
         <Card>
           <CardHeader>
@@ -177,6 +226,52 @@ export default function Profile() {
             )}
           </CardContent>
         </Card>
+      </div>
+    </div>
+  );
+}
+
+function BookingCard({ booking }: { booking: Booking }) {
+  const flightData = booking.flight_data as {
+    airline?: string;
+    flightNumber?: string;
+    origin?: string;
+    destination?: string;
+    departureTime?: string;
+    price?: number;
+  } | null;
+
+  return (
+    <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+      <div className="flex items-center gap-4">
+        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+          <Plane className="h-5 w-5 text-primary" />
+        </div>
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{flightData?.origin || 'N/A'}</span>
+            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium">{flightData?.destination || 'N/A'}</span>
+          </div>
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span>{flightData?.airline} {flightData?.flightNumber}</span>
+            {flightData?.departureTime && (
+              <span>{format(new Date(flightData.departureTime), 'MMM d, yyyy')}</span>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="text-right">
+        <span className={`text-xs px-2 py-1 rounded-full ${
+          booking.status === 'confirmed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+          booking.status === 'checked_in' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
+          'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+        }`}>
+          {booking.status.replace('_', ' ').toUpperCase()}
+        </span>
+        <p className="text-xs text-muted-foreground mt-1">
+          Ref: <span className="font-mono">{booking.booking_reference}</span>
+        </p>
       </div>
     </div>
   );

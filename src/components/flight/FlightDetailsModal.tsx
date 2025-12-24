@@ -1,16 +1,24 @@
+import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
-import { Plane, Clock, Luggage, Info, X } from 'lucide-react';
+import { Plane, Clock, Luggage, Info, X, Ticket } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { FlightOffer, FlightItinerary } from '@/types/flight';
+import { useBookings } from '@/hooks/useBookings';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 interface FlightDetailsModalProps {
   flight: FlightOffer | null;
   dictionaries?: any;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  originCode?: string;
+  destinationCode?: string;
 }
 
 function parseDuration(duration: string): string {
@@ -141,12 +149,49 @@ export function FlightDetailsModal({
   dictionaries,
   open,
   onOpenChange,
+  originCode,
+  destinationCode,
 }: FlightDetailsModalProps) {
+  const [showBookingForm, setShowBookingForm] = useState(false);
+  const [lastName, setLastName] = useState('');
+  const { createBooking, loading: bookingLoading } = useBookings();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
   if (!flight) return null;
 
   const isRoundTrip = flight.itineraries.length > 1;
   const travelerPricing = flight.travelerPricings[0];
   const checkedBagsIncluded = flight.pricingOptions?.includedCheckedBagsOnly;
+  
+  const firstSegment = flight.itineraries[0].segments[0];
+  const carrierName = dictionaries?.carriers?.[firstSegment.carrierCode] || firstSegment.carrierCode;
+
+  const handleBook = async () => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+
+    if (!lastName.trim()) return;
+
+    const flightData = {
+      airline: carrierName,
+      flightNumber: `${firstSegment.carrierCode}${firstSegment.number}`,
+      origin: originCode || firstSegment.departure.iataCode,
+      destination: destinationCode || flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.iataCode,
+      departureTime: firstSegment.departure.at,
+      arrivalTime: flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.at,
+      price: parseFloat(flight.price.grandTotal),
+    };
+
+    const booking = await createBooking(flightData, lastName);
+    if (booking) {
+      setShowBookingForm(false);
+      setLastName('');
+      onOpenChange(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -205,15 +250,46 @@ export function FlightDetailsModal({
               </div>
             </div>
 
-            <div className="flex gap-3">
-              <Button className="flex-1" onClick={() => onOpenChange(false)}>
-                Book This Flight
-              </Button>
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                <X className="h-4 w-4 mr-2" />
-                Close
-              </Button>
-            </div>
+            {showBookingForm ? (
+              <div className="space-y-4 p-4 bg-muted/30 rounded-lg">
+                <div className="space-y-2">
+                  <Label htmlFor="passenger-name">Passenger Last Name</Label>
+                  <Input
+                    id="passenger-name"
+                    placeholder="Enter your last name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handleBook} 
+                    disabled={bookingLoading || !lastName.trim()}
+                    className="flex-1"
+                  >
+                    <Ticket className="h-4 w-4 mr-2" />
+                    {bookingLoading ? 'Booking...' : 'Confirm Booking'}
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowBookingForm(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex gap-3">
+                <Button 
+                  className="flex-1" 
+                  onClick={() => user ? setShowBookingForm(true) : navigate('/auth')}
+                >
+                  <Ticket className="h-4 w-4 mr-2" />
+                  {user ? 'Book This Flight' : 'Sign in to Book'}
+                </Button>
+                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                  <X className="h-4 w-4 mr-2" />
+                  Close
+                </Button>
+              </div>
+            )}
 
             <p className="text-xs text-muted-foreground text-center">
               Last ticketing date: {flight.lastTicketingDate}

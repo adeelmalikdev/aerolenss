@@ -22,6 +22,12 @@ const Index = () => {
   const { savedSearches, loading: savedLoading, saveSearch, deleteSearch } = useSavedSearches();
   const { recentSearches, addRecentSearch, clearRecentSearches } = useRecentSearches();
   const [hasSearched, setHasSearched] = useState(false);
+  const [lastSearchRoute, setLastSearchRoute] = useState<{
+    originCode: string;
+    originName: string;
+    destinationCode: string;
+    destinationName: string;
+  } | null>(null);
 
   const initialOrigin = searchParams.get('origin') || undefined;
   const initialDestination = searchParams.get('destination') || undefined;
@@ -29,6 +35,13 @@ const Index = () => {
   const handleSearch = (params: FlightSearchParams) => {
     setHasSearched(true);
     searchFlights(params);
+    
+    setLastSearchRoute({
+      originCode: params.origin,
+      originName: params.origin,
+      destinationCode: params.destination,
+      destinationName: params.destination,
+    });
     
     addRecentSearch({
       originCode: params.origin,
@@ -45,6 +58,15 @@ const Index = () => {
       destination.iataCode,
       destination.name || destination.iataCode
     );
+    
+    // Update route names if we have better info
+    if (lastSearchRoute) {
+      setLastSearchRoute({
+        ...lastSearchRoute,
+        originName: origin.name || origin.iataCode,
+        destinationName: destination.name || destination.iataCode,
+      });
+    }
   };
 
   const handleQuickSearch = (originCode: string, destinationCode: string) => {
@@ -98,6 +120,10 @@ const Index = () => {
             dictionaries={dictionaries}
             loading={loading}
             error={error}
+            originCode={lastSearchRoute?.originCode}
+            originName={lastSearchRoute?.originName}
+            destinationCode={lastSearchRoute?.destinationCode}
+            destinationName={lastSearchRoute?.destinationName}
           />
         </div>
       ) : (
