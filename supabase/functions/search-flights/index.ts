@@ -1,10 +1,34 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const searchFlightsSchema = z.object({
+  origin: z.string()
+    .length(3, "Origin must be a 3-letter IATA code")
+    .regex(/^[A-Z]{3}$/, "Origin must be uppercase letters only")
+    .transform(val => val.toUpperCase()),
+  destination: z.string()
+    .length(3, "Destination must be a 3-letter IATA code")
+    .regex(/^[A-Z]{3}$/, "Destination must be uppercase letters only")
+    .transform(val => val.toUpperCase()),
+  departureDate: z.string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Departure date must be YYYY-MM-DD format"),
+  returnDate: z.string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Return date must be YYYY-MM-DD format")
+    .optional()
+    .nullable(),
+  adults: z.number().int().min(1).max(9).default(1),
+  children: z.number().int().min(0).max(8).default(0).optional(),
+  infants: z.number().int().min(0).max(4).default(0).optional(),
+  cabinClass: z.enum(['ECONOMY', 'PREMIUM_ECONOMY', 'BUSINESS', 'FIRST']).optional(),
+  nonStop: z.boolean().default(false).optional(),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -39,11 +63,22 @@ serve(async (req) => {
 
     console.log('Authenticated user:', user.id);
 
-    const { origin, destination, departureDate, returnDate, adults, children, infants, cabinClass, nonStop } = await req.json();
-
-    if (!origin || !destination || !departureDate) {
-      throw new Error('Missing required parameters: origin, destination, departureDate');
+    // Parse and validate input
+    const rawBody = await req.json();
+    const validationResult = searchFlightsSchema.safeParse(rawBody);
+    
+    if (!validationResult.success) {
+      console.log('Validation error:', validationResult.error.errors);
+      return new Response(JSON.stringify({ 
+        error: 'Invalid search parameters', 
+        data: [] 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
+
+    const { origin, destination, departureDate, returnDate, adults, children, infants, cabinClass, nonStop } = validationResult.data;
 
     // Get auth token from internal amadeus-auth function
     const authResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/amadeus-auth`, {
@@ -55,7 +90,11 @@ serve(async (req) => {
     });
 
     if (!authResponse.ok) {
-      throw new Error('Failed to get Amadeus auth token');
+      console.error('Failed to get Amadeus auth token');
+      return new Response(JSON.stringify({ error: 'Service unavailable', data: [] }), {
+        status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const { access_token } = await authResponse.json();
@@ -65,7 +104,7 @@ serve(async (req) => {
       originLocationCode: origin,
       destinationLocationCode: destination,
       departureDate: departureDate,
-      adults: String(adults || 1),
+      adults: String(adults),
       currencyCode: 'USD',
       max: '50',
     });
@@ -102,9 +141,11 @@ serve(async (req) => {
     );
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Amadeus flight search error:', errorText);
-      throw new Error(`Flight search failed: ${response.status}`);
+      console.error('Amadeus flight search error:', response.status);
+      return new Response(JSON.stringify({ error: 'Flight search failed', data: [] }), {
+        status: 502,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const data = await response.json();
@@ -115,7 +156,7 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('Error in search-flights:', error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error', data: [] }), {
+    return new Response(JSON.stringify({ error: 'An error occurred', data: [] }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
