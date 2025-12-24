@@ -1,17 +1,53 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Plane, TrendingDown, Shield, Clock } from 'lucide-react';
 import { FlightSearchForm } from '@/components/flight/FlightSearchForm';
 import { FlightResults } from '@/components/flight/FlightResults';
+import { SavedSearches } from '@/components/flight/SavedSearches';
+import { RecentSearches } from '@/components/flight/RecentSearches';
 import { useFlightSearch } from '@/hooks/useFlightSearch';
-import { FlightSearchParams } from '@/types/flight';
+import { useSavedSearches } from '@/hooks/useSavedSearches';
+import { useRecentSearches } from '@/hooks/useRecentSearches';
+import { useAuth } from '@/hooks/useAuth';
+import { FlightSearchParams, Airport } from '@/types/flight';
 
 const Index = () => {
+  const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   const { flights, dictionaries, loading, error, searchFlights } = useFlightSearch();
+  const { savedSearches, loading: savedLoading, saveSearch, deleteSearch } = useSavedSearches();
+  const { recentSearches, addRecentSearch, clearRecentSearches } = useRecentSearches();
   const [hasSearched, setHasSearched] = useState(false);
+
+  const initialOrigin = searchParams.get('origin') || undefined;
+  const initialDestination = searchParams.get('destination') || undefined;
 
   const handleSearch = (params: FlightSearchParams) => {
     setHasSearched(true);
     searchFlights(params);
+    
+    // Add to recent searches
+    addRecentSearch({
+      originCode: params.origin,
+      originName: params.origin,
+      destinationCode: params.destination,
+      destinationName: params.destination,
+    });
+  };
+
+  const handleSaveSearch = async (origin: Airport, destination: Airport) => {
+    await saveSearch(
+      origin.iataCode,
+      origin.name || origin.iataCode,
+      destination.iataCode,
+      destination.name || destination.iataCode
+    );
+  };
+
+  const handleQuickSearch = (originCode: string, destinationCode: string) => {
+    // Just update URL params - the form will pick them up
+    window.history.pushState({}, '', `/?origin=${originCode}&destination=${destinationCode}`);
+    window.location.reload();
   };
 
   return (
@@ -29,7 +65,35 @@ const Index = () => {
             </p>
           </div>
 
-          <FlightSearchForm onSearch={handleSearch} loading={loading} />
+          <FlightSearchForm 
+            onSearch={handleSearch} 
+            onSaveSearch={handleSaveSearch}
+            loading={loading}
+            initialOrigin={initialOrigin}
+            initialDestination={initialDestination}
+          />
+
+          {/* Quick Access Searches */}
+          {!hasSearched && (
+            <div className="mt-6 max-w-4xl mx-auto space-y-4">
+              {user && savedSearches.length > 0 && (
+                <SavedSearches
+                  searches={savedSearches}
+                  loading={savedLoading}
+                  onSelect={handleQuickSearch}
+                  onDelete={deleteSearch}
+                />
+              )}
+              
+              {recentSearches.length > 0 && (
+                <RecentSearches
+                  searches={recentSearches}
+                  onSelect={handleQuickSearch}
+                  onClear={clearRecentSearches}
+                />
+              )}
+            </div>
+          )}
 
           {!hasSearched && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-4xl mx-auto">
