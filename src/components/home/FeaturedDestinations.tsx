@@ -71,6 +71,9 @@ export function FeaturedDestinations({ onSelectDestination }: FeaturedDestinatio
                   src={dest.image}
                   alt={`${dest.city}, ${dest.country}`}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  loading="lazy"
+                  decoding="async"
+                  sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 100vw"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
               </div>
