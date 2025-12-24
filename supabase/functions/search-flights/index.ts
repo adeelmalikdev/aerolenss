@@ -65,7 +65,7 @@ serve(async (req) => {
     console.log('Searching flights:', params.toString());
     
     const response = await fetch(
-      `https://api.amadeus.com/v2/shopping/flight-offers?${params.toString()}`,
+      `https://test.api.amadeus.com/v2/shopping/flight-offers?${params.toString()}`,
       {
         headers: {
           'Authorization': `Bearer ${access_token}`,
