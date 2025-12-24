@@ -4,6 +4,7 @@ import { FlightFilters } from './FlightFilters';
 import { FlightSort } from './FlightSort';
 import { FlightDetailsModal } from './FlightDetailsModal';
 import { FlightResultsSkeleton } from './FlightResultsSkeleton';
+import { PriceAlertButton } from './PriceAlerts';
 import { FlightOffer, FlightFilters as FlightFiltersType, SortOption } from '@/types/flight';
 import { parseISO } from 'date-fns';
 
@@ -12,6 +13,10 @@ interface FlightResultsProps {
   dictionaries?: any;
   loading: boolean;
   error?: string | null;
+  originCode?: string;
+  originName?: string;
+  destinationCode?: string;
+  destinationName?: string;
 }
 
 function parseDurationMinutes(duration: string): number {
@@ -22,7 +27,16 @@ function parseDurationMinutes(duration: string): number {
   return hours * 60 + minutes;
 }
 
-export function FlightResults({ flights, dictionaries, loading, error }: FlightResultsProps) {
+export function FlightResults({ 
+  flights, 
+  dictionaries, 
+  loading, 
+  error,
+  originCode,
+  originName,
+  destinationCode,
+  destinationName,
+}: FlightResultsProps) {
   const [sortBy, setSortBy] = useState<SortOption>('best');
   const [selectedFlight, setSelectedFlight] = useState<FlightOffer | null>(null);
   const [filters, setFilters] = useState<FlightFiltersType>({
@@ -74,6 +88,11 @@ export function FlightResults({ flights, dictionaries, loading, error }: FlightR
     return result;
   }, [flights, filters, sortBy]);
 
+  const lowestPrice = useMemo(() => {
+    if (flights.length === 0) return undefined;
+    return Math.min(...flights.map(f => parseFloat(f.price.grandTotal)));
+  }, [flights]);
+
   if (loading) {
     return <FlightResultsSkeleton />;
   }
@@ -103,10 +122,21 @@ export function FlightResults({ flights, dictionaries, loading, error }: FlightR
 
         <div className="lg:col-span-3 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <p className="text-muted-foreground">
-              <span className="font-semibold text-foreground">{filteredAndSortedFlights.length}</span>
-              {' '}of {flights.length} flights
-            </p>
+            <div className="flex items-center gap-4">
+              <p className="text-muted-foreground">
+                <span className="font-semibold text-foreground">{filteredAndSortedFlights.length}</span>
+                {' '}of {flights.length} flights
+              </p>
+              {originCode && destinationCode && (
+                <PriceAlertButton
+                  originCode={originCode}
+                  originName={originName || originCode}
+                  destinationCode={destinationCode}
+                  destinationName={destinationName || destinationCode}
+                  currentPrice={lowestPrice}
+                />
+              )}
+            </div>
             <FlightSort value={sortBy} onChange={setSortBy} />
           </div>
 
@@ -135,6 +165,8 @@ export function FlightResults({ flights, dictionaries, loading, error }: FlightR
         dictionaries={dictionaries}
         open={!!selectedFlight}
         onOpenChange={(open) => !open && setSelectedFlight(null)}
+        originCode={originCode}
+        destinationCode={destinationCode}
       />
     </>
   );

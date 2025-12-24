@@ -65,6 +65,51 @@ export type Database = {
         }
         Relationships: []
       }
+      price_alerts: {
+        Row: {
+          created_at: string | null
+          current_price: number | null
+          destination_code: string
+          destination_name: string
+          id: string
+          is_active: boolean | null
+          last_checked_at: string | null
+          origin_code: string
+          origin_name: string
+          target_price: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_price?: number | null
+          destination_code: string
+          destination_name: string
+          id?: string
+          is_active?: boolean | null
+          last_checked_at?: string | null
+          origin_code: string
+          origin_name: string
+          target_price: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_price?: number | null
+          destination_code?: string
+          destination_name?: string
+          id?: string
+          is_active?: boolean | null
+          last_checked_at?: string | null
+          origin_code?: string
+          origin_name?: string
+          target_price?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
