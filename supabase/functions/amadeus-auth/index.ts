@@ -29,7 +29,7 @@ serve(async (req) => {
     }
 
     console.log('Fetching new Amadeus token');
-    const response = await fetch('https://api.amadeus.com/v1/security/oauth2/token', {
+    const response = await fetch('https://test.api.amadeus.com/v1/security/oauth2/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',

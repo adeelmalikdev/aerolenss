@@ -36,7 +36,7 @@ serve(async (req) => {
 
     console.log('Searching airports for:', keyword);
     const response = await fetch(
-      `https://api.amadeus.com/v1/reference-data/locations?subType=AIRPORT,CITY&keyword=${encodeURIComponent(keyword)}&page[limit]=10`,
+      `https://test.api.amadeus.com/v1/reference-data/locations?subType=AIRPORT,CITY&keyword=${encodeURIComponent(keyword)}&page[limit]=10`,
       {
         headers: {
           'Authorization': `Bearer ${access_token}`,
