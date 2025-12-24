@@ -1,0 +1,154 @@
+import { useMemo, useState } from 'react';
+import { Loader2 } from 'lucide-react';
+import { FlightCard } from './FlightCard';
+import { FlightFilters } from './FlightFilters';
+import { FlightSort } from './FlightSort';
+import { FlightOffer, FlightFilters as FlightFiltersType, SortOption } from '@/types/flight';
+import { parseISO } from 'date-fns';
+
+interface FlightResultsProps {
+  flights: FlightOffer[];
+  dictionaries?: any;
+  loading: boolean;
+  error?: string | null;
+}
+
+function parseDurationMinutes(duration: string): number {
+  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+  if (!match) return 0;
+  const hours = parseInt(match[1] || '0', 10);
+  const minutes = parseInt(match[2] || '0', 10);
+  return hours * 60 + minutes;
+}
+
+export function FlightResults({ flights, dictionaries, loading, error }: FlightResultsProps) {
+  const [sortBy, setSortBy] = useState<SortOption>('best');
+  const [filters, setFilters] = useState<FlightFiltersType>({
+    stops: 'any',
+    priceRange: [0, 100000],
+    airlines: [],
+    departureTimeRange: [0, 24],
+    durationMax: 1440,
+  });
+
+  const filteredAndSortedFlights = useMemo(() => {
+    let result = [...flights];
+
+    // Apply filters
+    result = result.filter((flight) => {
+      const price = parseFloat(flight.price.grandTotal);
+      const firstItinerary = flight.itineraries[0];
+      const stops = firstItinerary.segments.length - 1;
+      const departureHour = parseISO(firstItinerary.segments[0].departure.at).getHours();
+
+      // Price filter
+      if (price < filters.priceRange[0] || price > filters.priceRange[1]) {
+        return false;
+      }
+
+      // Stops filter
+      if (filters.stops === 'direct' && stops > 0) return false;
+      if (filters.stops === '1stop' && stops > 1) return false;
+      if (filters.stops === '2plus' && stops < 2) return false;
+
+      // Airlines filter
+      if (filters.airlines.length > 0 && !flight.validatingAirlineCodes.some(a => filters.airlines.includes(a))) {
+        return false;
+      }
+
+      // Departure time filter
+      if (departureHour < filters.departureTimeRange[0] || departureHour > filters.departureTimeRange[1]) {
+        return false;
+      }
+
+      return true;
+    });
+
+    // Apply sorting
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case 'price':
+          return parseFloat(a.price.grandTotal) - parseFloat(b.price.grandTotal);
+        case 'duration':
+          return parseDurationMinutes(a.itineraries[0].duration) - parseDurationMinutes(b.itineraries[0].duration);
+        case 'departure':
+          return new Date(a.itineraries[0].segments[0].departure.at).getTime() -
+            new Date(b.itineraries[0].segments[0].departure.at).getTime();
+        case 'best':
+        default:
+          // Best = combination of price and duration
+          const priceA = parseFloat(a.price.grandTotal);
+          const priceB = parseFloat(b.price.grandTotal);
+          const durationA = parseDurationMinutes(a.itineraries[0].duration);
+          const durationB = parseDurationMinutes(b.itineraries[0].duration);
+          const scoreA = priceA + durationA * 0.5;
+          const scoreB = priceB + durationB * 0.5;
+          return scoreA - scoreB;
+      }
+    });
+
+    return result;
+  }, [flights, filters, sortBy]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16">
+        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+        <p className="text-lg text-muted-foreground">Searching for the best flights...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-destructive text-lg">{error}</p>
+        <p className="text-muted-foreground mt-2">Please try again with different search criteria.</p>
+      </div>
+    );
+  }
+
+  if (flights.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="lg:col-span-1">
+        <FlightFilters
+          flights={flights}
+          filters={filters}
+          onFiltersChange={setFilters}
+          dictionaries={dictionaries}
+        />
+      </div>
+
+      <div className="lg:col-span-3 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <p className="text-muted-foreground">
+            <span className="font-semibold text-foreground">{filteredAndSortedFlights.length}</span>
+            {' '}of {flights.length} flights
+          </p>
+          <FlightSort value={sortBy} onChange={setSortBy} />
+        </div>
+
+        <div className="space-y-4">
+          {filteredAndSortedFlights.map((flight) => (
+            <FlightCard
+              key={flight.id}
+              flight={flight}
+              dictionaries={dictionaries}
+            />
+          ))}
+        </div>
+
+        {filteredAndSortedFlights.length === 0 && flights.length > 0 && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No flights match your filter criteria.</p>
+            <p className="text-sm text-muted-foreground mt-1">Try adjusting your filters.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
