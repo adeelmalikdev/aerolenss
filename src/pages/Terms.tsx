@@ -1,4 +1,10 @@
+import { useEffect } from 'react';
+
 export default function Terms() {
+  useEffect(() => {
+    document.title = 'Terms of Service | AeroLens';
+  }, []);
+
   return (
     <main className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-16">
@@ -10,7 +16,7 @@ export default function Terms() {
             <section>
               <h2 className="text-2xl font-bold mb-4">1. Acceptance of Terms</h2>
               <p className="text-muted-foreground">
-                By accessing or using SkyFinder's services, you agree to be bound by these Terms of Service. 
+                By accessing or using AeroLens services, you agree to be bound by these Terms of Service. 
                 If you do not agree to these terms, please do not use our services.
               </p>
             </section>
@@ -18,9 +24,9 @@ export default function Terms() {
             <section>
               <h2 className="text-2xl font-bold mb-4">2. Service Description</h2>
               <p className="text-muted-foreground mb-4">
-                SkyFinder provides a flight search and comparison platform. We help you find and compare 
+                AeroLens provides a flight search and comparison platform. We help you find and compare 
                 flight options from various airlines and travel providers. When you make a booking, your 
-                contract is with the airline or travel provider, not SkyFinder.
+                contract is with the airline or travel provider, not AeroLens.
               </p>
               <p className="text-muted-foreground">
                 We strive to provide accurate information, but prices and availability are subject to 
@@ -78,7 +84,7 @@ export default function Terms() {
             <section>
               <h2 className="text-2xl font-bold mb-4">7. Limitation of Liability</h2>
               <p className="text-muted-foreground">
-                SkyFinder acts as an intermediary and is not liable for:
+                AeroLens acts as an intermediary and is not liable for:
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-2">
                 <li>Flight cancellations, delays, or changes by airlines</li>
@@ -91,7 +97,7 @@ export default function Terms() {
             <section>
               <h2 className="text-2xl font-bold mb-4">8. Intellectual Property</h2>
               <p className="text-muted-foreground">
-                All content on SkyFinder, including logos, text, graphics, and software, is our 
+                All content on AeroLens, including logos, text, graphics, and software, is our 
                 property or that of our licensors. You may not reproduce, distribute, or create 
                 derivative works without our permission.
               </p>
@@ -122,7 +128,10 @@ export default function Terms() {
             <section>
               <h2 className="text-2xl font-bold mb-4">11. Contact</h2>
               <p className="text-muted-foreground">
-                For questions about these Terms of Service, please contact us at legal@skyfinder.com 
+                For questions about these Terms of Service, please contact us at{' '}
+                <a href="mailto:legal@aerolens.com" className="text-primary hover:underline">
+                  legal@aerolens.com
+                </a>{' '}
                 or through our Help Center.
               </p>
             </section>

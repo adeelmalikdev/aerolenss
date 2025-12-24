@@ -1,4 +1,10 @@
+import { useEffect } from 'react';
+
 export default function Privacy() {
+  useEffect(() => {
+    document.title = 'Privacy Policy | AeroLens';
+  }, []);
+
   return (
     <main className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-16">
@@ -82,8 +88,11 @@ export default function Privacy() {
             <section>
               <h2 className="text-2xl font-bold mb-4">7. Contact Us</h2>
               <p className="text-muted-foreground">
-                If you have questions about this Privacy Policy, please contact us at 
-                privacy@skyfinder.com or through our Help Center.
+                If you have questions about this Privacy Policy, please contact us at{' '}
+                <a href="mailto:privacy@aerolens.com" className="text-primary hover:underline">
+                  privacy@aerolens.com
+                </a>{' '}
+                or through our Help Center.
               </p>
             </section>
           </div>
