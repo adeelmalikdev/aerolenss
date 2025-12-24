@@ -27,20 +27,29 @@ serve(async (req) => {
 
     // Parse and validate input
     const rawBody = await req.json();
-    const validationResult = searchAirportsSchema.safeParse(rawBody);
+    const keyword = rawBody?.keyword?.trim?.() || '';
+    
+    // Return empty results for short queries (less than 2 chars) - not an error
+    if (keyword.length < 2) {
+      return new Response(JSON.stringify({ data: [] }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    // Validate remaining constraints
+    const validationResult = searchAirportsSchema.safeParse({ keyword });
     
     if (!validationResult.success) {
       console.log('Validation error:', validationResult.error.errors);
-      return new Response(JSON.stringify({ 
-        error: 'Invalid input', 
-        data: [] 
-      }), {
-        status: 400,
+      // Return empty array instead of error for invalid input
+      return new Response(JSON.stringify({ data: [] }), {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const { keyword } = validationResult.data;
+    const validatedKeyword = validationResult.data.keyword;
 
     // Get auth token from internal amadeus-auth function
     const authResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/amadeus-auth`, {
@@ -61,9 +70,9 @@ serve(async (req) => {
 
     const { access_token } = await authResponse.json();
 
-    console.log('Searching airports for:', keyword);
+    console.log('Searching airports for:', validatedKeyword);
     const response = await fetch(
-      `https://test.api.amadeus.com/v1/reference-data/locations?subType=AIRPORT,CITY&keyword=${encodeURIComponent(keyword)}&page[limit]=10`,
+      `https://test.api.amadeus.com/v1/reference-data/locations?subType=AIRPORT,CITY&keyword=${encodeURIComponent(validatedKeyword)}&page[limit]=10`,
       {
         headers: {
           'Authorization': `Bearer ${access_token}`,
