@@ -19,25 +19,25 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <Plane className="h-8 w-8 text-primary" />
+            <Link to="/" className="flex items-center gap-2 mb-4" aria-label="AeroLens - Go to homepage">
+              <Plane className="h-8 w-8 text-primary" aria-hidden="true" />
               <span className="text-2xl font-bold text-foreground">AeroLens</span>
             </Link>
             <p className="text-muted-foreground mb-6 max-w-xs">
               Your trusted partner for finding the best flight deals worldwide.
             </p>
             <div className="flex gap-4">
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                <Facebook className="h-5 w-5" />
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Follow us on Facebook">
+                <Facebook className="h-5 w-5" aria-hidden="true" />
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                <Instagram className="h-5 w-5" />
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Follow us on Instagram">
+                <Instagram className="h-5 w-5" aria-hidden="true" />
               </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                <Linkedin className="h-5 w-5" />
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Follow us on LinkedIn">
+                <Linkedin className="h-5 w-5" aria-hidden="true" />
               </a>
-              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                <Youtube className="h-5 w-5" />
+              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Subscribe on YouTube">
+                <Youtube className="h-5 w-5" aria-hidden="true" />
               </a>
             </div>
           </div>

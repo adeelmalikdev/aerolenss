@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, ChevronDown, ChevronUp, MessageCircle, Mail, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 const faqs = [
   {
@@ -12,8 +13,8 @@ const faqs = [
         a: 'Simply enter your departure and arrival cities, select your travel dates, and click "Search Flights". Browse the results, select your preferred flight, and follow the booking process.',
       },
       {
-        q: 'Can I book a multi-city trip?',
-        a: 'Yes! Select the "Multi-city" option in the search form to add multiple destinations to your trip.',
+        q: 'Can I book a round-trip flight?',
+        a: 'Yes! Select the "Round Trip" option in the search form to search for outbound and return flights together.',
       },
       {
         q: 'How do I get my booking confirmation?',
@@ -78,6 +79,10 @@ export default function Help() {
   const [searchQuery, setSearchQuery] = useState('');
   const [openItems, setOpenItems] = useState<string[]>([]);
 
+  useEffect(() => {
+    document.title = 'Help Center | AeroLens';
+  }, []);
+
   const toggleItem = (id: string) => {
     setOpenItems(prev => 
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
@@ -92,6 +97,20 @@ export default function Help() {
     ),
   })).filter(category => category.questions.length > 0);
 
+  const handleContactAction = (type: 'chat' | 'email' | 'phone') => {
+    switch (type) {
+      case 'chat':
+        toast.info('Live chat support coming soon!');
+        break;
+      case 'email':
+        window.location.href = 'mailto:support@aerolens.com';
+        break;
+      case 'phone':
+        toast.info('Phone support: 1-800-AEROLENS');
+        break;
+    }
+  };
+
   return (
     <main className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-16">
@@ -103,20 +122,21 @@ export default function Help() {
 
           {/* Search */}
           <div className="relative mb-12">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" aria-hidden="true" />
             <Input
               placeholder="Search for help..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-12 h-14 text-lg"
+              aria-label="Search help articles"
             />
           </div>
 
           {/* FAQs */}
           <div className="space-y-8 mb-16">
             {filteredFaqs.map((category) => (
-              <div key={category.category}>
-                <h2 className="text-xl font-semibold mb-4">{category.category}</h2>
+              <section key={category.category} aria-labelledby={`category-${category.category}`}>
+                <h2 id={`category-${category.category}`} className="text-xl font-semibold mb-4">{category.category}</h2>
                 <div className="space-y-2">
                   {category.questions.map((item, index) => {
                     const id = `${category.category}-${index}`;
@@ -126,16 +146,18 @@ export default function Help() {
                         <button
                           onClick={() => toggleItem(id)}
                           className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/50 transition-colors"
+                          aria-expanded={isOpen}
+                          aria-controls={`answer-${id}`}
                         >
                           <span className="font-medium">{item.q}</span>
                           {isOpen ? (
-                            <ChevronUp className="h-5 w-5 text-muted-foreground shrink-0" />
+                            <ChevronUp className="h-5 w-5 text-muted-foreground shrink-0" aria-hidden="true" />
                           ) : (
-                            <ChevronDown className="h-5 w-5 text-muted-foreground shrink-0" />
+                            <ChevronDown className="h-5 w-5 text-muted-foreground shrink-0" aria-hidden="true" />
                           )}
                         </button>
                         {isOpen && (
-                          <div className="px-4 pb-4 text-muted-foreground">
+                          <div id={`answer-${id}`} className="px-4 pb-4 text-muted-foreground">
                             {item.a}
                           </div>
                         )}
@@ -143,46 +165,52 @@ export default function Help() {
                     );
                   })}
                 </div>
-              </div>
+              </section>
             ))}
           </div>
 
           {/* Contact Options */}
-          <div className="bg-card rounded-xl border p-8">
-            <h2 className="text-2xl font-bold mb-6">Still need help?</h2>
+          <section className="bg-card rounded-xl border p-8" aria-labelledby="contact-heading">
+            <h2 id="contact-heading" className="text-2xl font-bold mb-6">Still need help?</h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="text-center p-4">
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MessageCircle className="h-6 w-6 text-primary" />
+                  <MessageCircle className="h-6 w-6 text-primary" aria-hidden="true" />
                 </div>
                 <h3 className="font-semibold mb-2">Live Chat</h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   Chat with our support team
                 </p>
-                <Button variant="outline" size="sm">Start Chat</Button>
+                <Button variant="outline" size="sm" onClick={() => handleContactAction('chat')}>
+                  Start Chat
+                </Button>
               </div>
               <div className="text-center p-4">
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Mail className="h-6 w-6 text-primary" />
+                  <Mail className="h-6 w-6 text-primary" aria-hidden="true" />
                 </div>
                 <h3 className="font-semibold mb-2">Email</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  support@skyfinder.com
+                  support@aerolens.com
                 </p>
-                <Button variant="outline" size="sm">Send Email</Button>
+                <Button variant="outline" size="sm" onClick={() => handleContactAction('email')}>
+                  Send Email
+                </Button>
               </div>
               <div className="text-center p-4">
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Phone className="h-6 w-6 text-primary" />
+                  <Phone className="h-6 w-6 text-primary" aria-hidden="true" />
                 </div>
                 <h3 className="font-semibold mb-2">Phone</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  1-800-SKY-FIND
+                  1-800-AEROLENS
                 </p>
-                <Button variant="outline" size="sm">Call Now</Button>
+                <Button variant="outline" size="sm" onClick={() => handleContactAction('phone')}>
+                  Call Now
+                </Button>
               </div>
             </div>
-          </div>
+          </section>
         </div>
       </div>
     </main>

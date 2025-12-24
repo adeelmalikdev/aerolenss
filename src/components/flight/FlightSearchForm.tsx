@@ -104,8 +104,9 @@ export function FlightSearchForm({
             size="icon"
             onClick={handleSwapAirports}
             className="shrink-0"
+            aria-label="Swap origin and destination"
           >
-            <ArrowRightLeft className="h-4 w-4" />
+            <ArrowRightLeft className="h-4 w-4" aria-hidden="true" />
           </Button>
           <AirportInput
             value={destination}
@@ -191,15 +192,17 @@ export function FlightSearchForm({
                       size="sm"
                       onClick={() => setAdults(Math.max(1, adults - 1))}
                       disabled={adults <= 1}
+                      aria-label="Decrease adults"
                     >
                       -
                     </Button>
-                    <span className="w-8 text-center">{adults}</span>
+                    <span className="w-8 text-center" aria-live="polite">{adults}</span>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setAdults(Math.min(9, adults + 1))}
                       disabled={adults >= 9}
+                      aria-label="Increase adults"
                     >
                       +
                     </Button>
@@ -217,15 +220,17 @@ export function FlightSearchForm({
                       size="sm"
                       onClick={() => setChildren(Math.max(0, children - 1))}
                       disabled={children <= 0}
+                      aria-label="Decrease children"
                     >
                       -
                     </Button>
-                    <span className="w-8 text-center">{children}</span>
+                    <span className="w-8 text-center" aria-live="polite">{children}</span>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setChildren(Math.min(9, children + 1))}
                       disabled={children >= 9}
+                      aria-label="Increase children"
                     >
                       +
                     </Button>
@@ -243,15 +248,17 @@ export function FlightSearchForm({
                       size="sm"
                       onClick={() => setInfants(Math.max(0, infants - 1))}
                       disabled={infants <= 0}
+                      aria-label="Decrease infants"
                     >
                       -
                     </Button>
-                    <span className="w-8 text-center">{infants}</span>
+                    <span className="w-8 text-center" aria-live="polite">{infants}</span>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setInfants(Math.min(adults, infants + 1))}
                       disabled={infants >= adults}
+                      aria-label="Increase infants"
                     >
                       +
                     </Button>

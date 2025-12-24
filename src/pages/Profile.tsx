@@ -25,6 +25,10 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    document.title = 'Profile | AeroLens';
+  }, []);
+
+  useEffect(() => {
     if (!authLoading && !user) {
       navigate('/auth');
     }
@@ -58,23 +62,23 @@ export default function Profile() {
 
   if (authLoading || profileLoading) {
     return (
-      <div className="min-h-screen bg-background py-8">
+      <main className="min-h-screen bg-background py-8">
         <div className="container mx-auto px-4 max-w-4xl space-y-6">
           <Skeleton className="h-48 w-full" />
           <Skeleton className="h-64 w-full" />
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background py-8">
+    <main className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4 max-w-4xl space-y-6">
         {/* Profile Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
+              <User className="h-5 w-5" aria-hidden="true" />
               Profile
             </CardTitle>
             <CardDescription>Manage your account details</CardDescription>
@@ -106,11 +110,12 @@ export default function Profile() {
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" value={user?.email || ''} disabled />
+                <Input id="email" value={user?.email || ''} disabled aria-describedby="email-hint" />
+                <p id="email-hint" className="text-xs text-muted-foreground">Email cannot be changed</p>
               </div>
 
               <Button onClick={handleSaveProfile} disabled={saving}>
-                <Save className="h-4 w-4 mr-2" />
+                <Save className="h-4 w-4 mr-2" aria-hidden="true" />
                 {saving ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>
@@ -121,7 +126,7 @@ export default function Profile() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Ticket className="h-5 w-5" />
+              <Ticket className="h-5 w-5" aria-hidden="true" />
               My Bookings
             </CardTitle>
             <CardDescription>Your flight bookings and reservations</CardDescription>
@@ -134,16 +139,18 @@ export default function Profile() {
               </div>
             ) : bookings.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <Ticket className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <Ticket className="h-12 w-12 mx-auto mb-3 opacity-50" aria-hidden="true" />
                 <p>No bookings yet</p>
                 <p className="text-sm">Search and book a flight to see it here</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <ul className="space-y-3" aria-label="Your bookings">
                 {bookings.map((booking) => (
-                  <BookingCard key={booking.id} booking={booking} />
+                  <li key={booking.id}>
+                    <BookingCard booking={booking} />
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </CardContent>
         </Card>
@@ -152,7 +159,7 @@ export default function Profile() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5" />
+              <Bell className="h-5 w-5" aria-hidden="true" />
               Price Alerts
             </CardTitle>
             <CardDescription>Get notified when prices drop for your favorite routes</CardDescription>
@@ -166,7 +173,7 @@ export default function Profile() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Plane className="h-5 w-5" />
+              <Plane className="h-5 w-5" aria-hidden="true" />
               Saved Searches
             </CardTitle>
             <CardDescription>Your saved flight routes for quick access</CardDescription>
@@ -179,14 +186,14 @@ export default function Profile() {
               </div>
             ) : savedSearches.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <Plane className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <Plane className="h-12 w-12 mx-auto mb-3 opacity-50" aria-hidden="true" />
                 <p>No saved searches yet</p>
                 <p className="text-sm">Save a search from the homepage to see it here</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <ul className="space-y-3" aria-label="Saved searches">
                 {savedSearches.map((search) => (
-                  <div
+                  <li
                     key={search.id}
                     className="flex items-center justify-between p-4 bg-muted/50 rounded-lg"
                   >
@@ -196,7 +203,7 @@ export default function Profile() {
                           <p className="font-medium">{search.origin_code}</p>
                           <p className="text-xs text-muted-foreground">{search.origin_name}</p>
                         </div>
-                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                        <ArrowRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                         <div>
                           <p className="font-medium">{search.destination_code}</p>
                           <p className="text-xs text-muted-foreground">{search.destination_name}</p>
@@ -216,18 +223,19 @@ export default function Profile() {
                         size="icon"
                         onClick={() => deleteSearch(search.id)}
                         className="text-destructive hover:text-destructive"
+                        aria-label={`Delete saved search from ${search.origin_code} to ${search.destination_code}`}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     </div>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </CardContent>
         </Card>
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -242,15 +250,15 @@ function BookingCard({ booking }: { booking: Booking }) {
   } | null;
 
   return (
-    <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+    <article className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
       <div className="flex items-center gap-4">
         <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-          <Plane className="h-5 w-5 text-primary" />
+          <Plane className="h-5 w-5 text-primary" aria-hidden="true" />
         </div>
         <div>
           <div className="flex items-center gap-2">
             <span className="font-medium">{flightData?.origin || 'N/A'}</span>
-            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            <ArrowRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             <span className="font-medium">{flightData?.destination || 'N/A'}</span>
           </div>
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
@@ -273,6 +281,6 @@ function BookingCard({ booking }: { booking: Booking }) {
           Ref: <span className="font-mono">{booking.booking_reference}</span>
         </p>
       </div>
-    </div>
+    </article>
   );
 }

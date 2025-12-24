@@ -1,6 +1,11 @@
+import { useEffect } from 'react';
 import { Plane, Users, Globe, Shield } from 'lucide-react';
 
 export default function About() {
+  useEffect(() => {
+    document.title = 'About Us | AeroLens';
+  }, []);
+
   return (
     <main className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-16">
@@ -14,49 +19,49 @@ export default function About() {
             </p>
 
             <div className="grid md:grid-cols-2 gap-8 my-12">
-              <div className="bg-card rounded-xl p-6 border">
+              <article className="bg-card rounded-xl p-6 border">
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                  <Plane className="h-6 w-6 text-primary" />
+                  <Plane className="h-6 w-6 text-primary" aria-hidden="true" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Our Mission</h3>
                 <p className="text-muted-foreground">
                   To make flight booking simple, transparent, and affordable for everyone. 
                   We believe everyone deserves to explore the world.
                 </p>
-              </div>
+              </article>
 
-              <div className="bg-card rounded-xl p-6 border">
+              <article className="bg-card rounded-xl p-6 border">
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                  <Users className="h-6 w-6 text-primary" />
+                  <Users className="h-6 w-6 text-primary" aria-hidden="true" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Our Team</h3>
                 <p className="text-muted-foreground">
                   A passionate team of travel enthusiasts and tech experts working together 
                   to revolutionize how you search for flights.
                 </p>
-              </div>
+              </article>
 
-              <div className="bg-card rounded-xl p-6 border">
+              <article className="bg-card rounded-xl p-6 border">
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                  <Globe className="h-6 w-6 text-primary" />
+                  <Globe className="h-6 w-6 text-primary" aria-hidden="true" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Global Reach</h3>
                 <p className="text-muted-foreground">
                   We partner with hundreds of airlines and travel providers to bring you 
                   comprehensive flight options across the globe.
                 </p>
-              </div>
+              </article>
 
-              <div className="bg-card rounded-xl p-6 border">
+              <article className="bg-card rounded-xl p-6 border">
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                  <Shield className="h-6 w-6 text-primary" />
+                  <Shield className="h-6 w-6 text-primary" aria-hidden="true" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Trust & Security</h3>
                 <p className="text-muted-foreground">
                   Your data security is our priority. We use industry-standard encryption 
                   to protect your information.
                 </p>
-              </div>
+              </article>
             </div>
 
             <h2 className="text-2xl font-bold mt-12 mb-4">Our Story</h2>
