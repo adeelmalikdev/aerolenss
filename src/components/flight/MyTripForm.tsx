@@ -4,9 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useBookings, Booking } from '@/hooks/useBookings';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import { Plane, Calendar, MapPin, User, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { bookingReferenceSchema, lastNameSchema, validateWithMessage, isValidationError } from '@/lib/validation';
 
 export function MyTripForm() {
   const [bookingReference, setBookingReference] = useState('');
@@ -15,13 +17,25 @@ export function MyTripForm() {
   const [searched, setSearched] = useState(false);
   const { findBooking, loading } = useBookings();
   const { user } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!bookingReference.trim() || !lastName.trim()) return;
     
-    const booking = await findBooking(bookingReference.toUpperCase(), lastName);
+    const refValidation = validateWithMessage(bookingReferenceSchema, bookingReference);
+    if (isValidationError(refValidation)) {
+      toast({ title: 'Invalid Input', description: refValidation.error, variant: 'destructive' });
+      return;
+    }
+    
+    const nameValidation = validateWithMessage(lastNameSchema, lastName);
+    if (isValidationError(nameValidation)) {
+      toast({ title: 'Invalid Input', description: nameValidation.error, variant: 'destructive' });
+      return;
+    }
+    
+    const booking = await findBooking(refValidation.data, nameValidation.data);
     setFoundBooking(booking);
     setSearched(true);
   };
@@ -58,6 +72,7 @@ export function MyTripForm() {
               placeholder="Enter passenger last name"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
+              maxLength={50}
             />
           </div>
         </div>
@@ -89,7 +104,7 @@ export function MyTripForm() {
         <div className="bg-muted/30 rounded-lg p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Plane className="h-5 w-5 text-primary" />
+              <Plane className="h-5 w-5 text-primary" aria-hidden="true" />
               <span className="font-semibold">{flightData.airline} {flightData.flightNumber}</span>
             </div>
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -103,14 +118,14 @@ export function MyTripForm() {
           
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <MapPin className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
               <div>
                 <p className="text-sm text-muted-foreground">From</p>
                 <p className="font-medium">{flightData.origin}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <MapPin className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
               <div>
                 <p className="text-sm text-muted-foreground">To</p>
                 <p className="font-medium">{flightData.destination}</p>
@@ -120,15 +135,15 @@ export function MyTripForm() {
 
           {flightData.departureTime && (
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <Calendar className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
               <span>{format(new Date(flightData.departureTime), 'PPP')}</span>
-              <Clock className="h-4 w-4 text-muted-foreground ml-4" />
+              <Clock className="h-4 w-4 text-muted-foreground ml-4" aria-hidden="true" />
               <span>{format(new Date(flightData.departureTime), 'p')}</span>
             </div>
           )}
 
           <div className="flex items-center gap-2">
-            <User className="h-4 w-4 text-muted-foreground" />
+            <User className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             <span>Passenger: {foundBooking.passenger_last_name}</span>
           </div>
 

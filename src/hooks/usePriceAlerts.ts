@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
+import { priceSchema, airportCodeSchema, locationNameSchema, validateWithMessage, isValidationError } from '@/lib/validation';
 
 export interface PriceAlert {
   id: string;
@@ -40,8 +41,8 @@ export function usePriceAlerts() {
 
       if (error) throw error;
       setAlerts((data as PriceAlert[]) || []);
-    } catch (error) {
-      console.error('Error fetching price alerts:', error);
+    } catch {
+      // Silent fail - user will see empty state
     } finally {
       setLoading(false);
     }
@@ -68,10 +69,41 @@ export function usePriceAlerts() {
       return false;
     }
 
+    // Validate inputs
+    const originCodeVal = validateWithMessage(airportCodeSchema, originCode.toUpperCase());
+    if (isValidationError(originCodeVal)) {
+      toast({ title: 'Invalid Input', description: 'Invalid origin airport code', variant: 'destructive' });
+      return false;
+    }
+
+    const destCodeVal = validateWithMessage(airportCodeSchema, destinationCode.toUpperCase());
+    if (isValidationError(destCodeVal)) {
+      toast({ title: 'Invalid Input', description: 'Invalid destination airport code', variant: 'destructive' });
+      return false;
+    }
+
+    const originNameVal = validateWithMessage(locationNameSchema, originName);
+    if (isValidationError(originNameVal)) {
+      toast({ title: 'Invalid Input', description: originNameVal.error, variant: 'destructive' });
+      return false;
+    }
+
+    const destNameVal = validateWithMessage(locationNameSchema, destinationName);
+    if (isValidationError(destNameVal)) {
+      toast({ title: 'Invalid Input', description: destNameVal.error, variant: 'destructive' });
+      return false;
+    }
+
+    const priceVal = validateWithMessage(priceSchema, targetPrice);
+    if (isValidationError(priceVal)) {
+      toast({ title: 'Invalid Input', description: priceVal.error, variant: 'destructive' });
+      return false;
+    }
+
     // Check for existing alert
     const existing = alerts.find(
-      a => a.origin_code === originCode && 
-           a.destination_code === destinationCode && 
+      a => a.origin_code === originCodeVal.data && 
+           a.destination_code === destCodeVal.data && 
            a.is_active
     );
 
@@ -89,11 +121,11 @@ export function usePriceAlerts() {
         .from('price_alerts')
         .insert([{
           user_id: user.id,
-          origin_code: originCode,
-          origin_name: originName,
-          destination_code: destinationCode,
-          destination_name: destinationName,
-          target_price: targetPrice,
+          origin_code: originCodeVal.data,
+          origin_name: originNameVal.data,
+          destination_code: destCodeVal.data,
+          destination_name: destNameVal.data,
+          target_price: priceVal.data,
           current_price: currentPrice || null,
           is_active: true,
         }]);
@@ -102,13 +134,12 @@ export function usePriceAlerts() {
 
       toast({
         title: 'Price Alert Created!',
-        description: `We'll notify you when ${originCode} → ${destinationCode} drops below $${targetPrice}`,
+        description: `We'll notify you when ${originCodeVal.data} → ${destCodeVal.data} drops below $${priceVal.data}`,
       });
 
       await fetchAlerts();
       return true;
-    } catch (error) {
-      console.error('Error creating price alert:', error);
+    } catch {
       toast({
         title: 'Failed to create alert',
         description: 'Please try again later.',
@@ -148,8 +179,7 @@ export function usePriceAlerts() {
 
       await fetchAlerts();
       return true;
-    } catch (error) {
-      console.error('Error updating price alert:', error);
+    } catch {
       toast({
         title: 'Failed to update alert',
         description: 'Please try again later.',
@@ -181,8 +211,7 @@ export function usePriceAlerts() {
 
       await fetchAlerts();
       return true;
-    } catch (error) {
-      console.error('Error deleting price alert:', error);
+    } catch {
       toast({
         title: 'Failed to delete alert',
         description: 'Please try again later.',

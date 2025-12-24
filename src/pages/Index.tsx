@@ -70,13 +70,17 @@ const Index = () => {
   };
 
   const handleQuickSearch = (originCode: string, destinationCode: string) => {
-    window.history.pushState({}, '', `/?origin=${originCode}&destination=${destinationCode}`);
-    window.location.reload();
+    const newUrl = `/?origin=${encodeURIComponent(originCode)}&destination=${encodeURIComponent(destinationCode)}`;
+    window.history.pushState({}, '', newUrl);
+    // Trigger a re-render by updating state instead of reloading
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    window.location.href = newUrl;
   };
 
   const handleSelectDestination = (code: string) => {
-    window.history.pushState({}, '', `/?destination=${code}`);
-    window.location.reload();
+    const newUrl = `/?destination=${encodeURIComponent(code)}`;
+    window.history.pushState({}, '', newUrl);
+    window.location.href = newUrl;
   };
 
   return (
