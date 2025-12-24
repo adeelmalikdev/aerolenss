@@ -5,11 +5,11 @@ export default function About() {
     <main className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold mb-6">About SkyFinder</h1>
+          <h1 className="text-4xl font-bold mb-6">About AeroLens</h1>
           
           <div className="prose prose-lg dark:prose-invert max-w-none">
             <p className="text-xl text-muted-foreground mb-8">
-              SkyFinder is your trusted partner in finding the best flight deals worldwide. 
+              AeroLens is your trusted partner in finding the best flight deals worldwide. 
               We compare millions of flights to help you travel smarter and save more.
             </p>
 
@@ -61,17 +61,17 @@ export default function About() {
 
             <h2 className="text-2xl font-bold mt-12 mb-4">Our Story</h2>
             <p className="text-muted-foreground mb-4">
-              Founded in 2024, SkyFinder was born from a simple frustration: finding affordable 
+              Founded in 2024, AeroLens was born from a simple frustration: finding affordable 
               flights shouldn't be complicated. Our founders, frequent travelers themselves, 
               set out to create a platform that puts the user first.
             </p>
             <p className="text-muted-foreground mb-4">
               Today, we help millions of travelers find their perfect flights. From budget 
-              backpackers to business travelers, SkyFinder serves everyone with the same 
+              backpackers to business travelers, AeroLens serves everyone with the same 
               commitment to transparency and value.
             </p>
 
-            <h2 className="text-2xl font-bold mt-12 mb-4">Why Choose SkyFinder?</h2>
+            <h2 className="text-2xl font-bold mt-12 mb-4">Why Choose AeroLens?</h2>
             <ul className="list-disc list-inside text-muted-foreground space-y-2">
               <li>Compare prices from hundreds of airlines and travel sites</li>
               <li>No hidden fees - the price you see is the price you pay</li>

@@ -21,7 +21,7 @@ export function Footer() {
           <div className="lg:col-span-2">
             <Link to="/" className="flex items-center gap-2 mb-4">
               <Plane className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold text-foreground">SkyFinder</span>
+              <span className="text-2xl font-bold text-foreground">AeroLens</span>
             </Link>
             <p className="text-muted-foreground mb-6 max-w-xs">
               Your trusted partner for finding the best flight deals worldwide.
@@ -44,7 +44,7 @@ export function Footer() {
 
           {/* Links */}
           <div>
-            <h4 className="font-semibold text-foreground mb-4">About SkyFinder</h4>
+            <h4 className="font-semibold text-foreground mb-4">About AeroLens</h4>
             <ul className="space-y-2">
               {footerLinks.company.map((link) => (
                 <li key={link.label}>
@@ -72,7 +72,7 @@ export function Footer() {
 
         <div className="border-t pt-8">
           <p className="text-sm text-muted-foreground text-center">
-            © {new Date().getFullYear()} SkyFinder. All rights reserved.
+            © {new Date().getFullYear()} AeroLens. All rights reserved.
           </p>
         </div>
       </div>

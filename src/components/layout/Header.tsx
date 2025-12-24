@@ -29,7 +29,7 @@ export function Header() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <Plane className="h-6 w-6 text-primary" />
-          <span className="text-xl font-bold text-foreground">SkyFinder</span>
+          <span className="text-xl font-bold text-foreground">AeroLens</span>
         </Link>
 
         {!loading && (
