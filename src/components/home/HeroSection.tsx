@@ -32,6 +32,9 @@ export function HeroSection({
           src={heroImage}
           alt="Airplane wing view"
           className="w-full h-full object-cover"
+          fetchPriority="high"
+          decoding="async"
+          sizes="100vw"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/60 to-transparent" />
       </div>
