@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
+import { lastNameSchema, validateWithMessage, isValidationError } from '@/lib/validation';
 
 export interface Booking {
   id: string;
@@ -44,8 +45,8 @@ export function useBookings() {
 
       if (error) throw error;
       setBookings((data as Booking[]) || []);
-    } catch (error) {
-      console.error('Error fetching bookings:', error);
+    } catch {
+      // Silent fail for fetch - user will see empty state
     } finally {
       setLoading(false);
     }
@@ -68,6 +69,16 @@ export function useBookings() {
       return null;
     }
 
+    const nameValidation = validateWithMessage(lastNameSchema, passengerLastName);
+    if (isValidationError(nameValidation)) {
+      toast({
+        title: 'Invalid Input',
+        description: nameValidation.error,
+        variant: 'destructive',
+      });
+      return null;
+    }
+
     setLoading(true);
     try {
       const bookingReference = generateBookingReference();
@@ -78,7 +89,7 @@ export function useBookings() {
           user_id: user.id,
           booking_reference: bookingReference,
           flight_data: flightData as unknown as Record<string, never>,
-          passenger_last_name: passengerLastName,
+          passenger_last_name: nameValidation.data,
           status: 'confirmed',
         }])
         .select()
@@ -93,8 +104,7 @@ export function useBookings() {
 
       await fetchBookings();
       return data as Booking;
-    } catch (error) {
-      console.error('Error creating booking:', error);
+    } catch {
       toast({
         title: 'Booking Failed',
         description: 'Unable to complete your booking. Please try again.',
@@ -121,8 +131,7 @@ export function useBookings() {
 
       if (error) throw error;
       return data as Booking | null;
-    } catch (error) {
-      console.error('Error finding booking:', error);
+    } catch {
       return null;
     } finally {
       setLoading(false);
@@ -146,8 +155,7 @@ export function useBookings() {
 
       await fetchBookings();
       return true;
-    } catch (error) {
-      console.error('Error checking in:', error);
+    } catch {
       toast({
         title: 'Check-in Failed',
         description: 'Unable to complete check-in. Please try again.',

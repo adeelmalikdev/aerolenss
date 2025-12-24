@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
+import { emailSchema, validateWithMessage, isValidationError } from '@/lib/validation';
 
 export function useNewsletter() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const subscribe = async (email: string): Promise<boolean> => {
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    const validation = validateWithMessage(emailSchema, email);
+    if (isValidationError(validation)) {
       toast({
         title: 'Invalid Email',
-        description: 'Please enter a valid email address.',
+        description: validation.error,
         variant: 'destructive',
       });
       return false;
@@ -20,7 +22,7 @@ export function useNewsletter() {
     try {
       const { error } = await supabase
         .from('newsletter_subscribers')
-        .insert({ email: email.toLowerCase() });
+        .insert({ email: validation.data });
 
       if (error) {
         if (error.code === '23505') {
@@ -38,8 +40,7 @@ export function useNewsletter() {
         description: 'Thank you for subscribing to our newsletter.',
       });
       return true;
-    } catch (error) {
-      console.error('Error subscribing:', error);
+    } catch {
       toast({
         title: 'Subscription Failed',
         description: 'Unable to subscribe. Please try again later.',
