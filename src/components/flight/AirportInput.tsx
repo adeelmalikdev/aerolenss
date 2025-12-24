@@ -47,7 +47,9 @@ export function AirportInput({ value, onChange, placeholder, icon = 'departure',
     setIsOpen(false);
   };
 
-  const displayValue = value ? `${value.iataCode} - ${value.cityName || value.name}` : query;
+  const displayValue = value 
+    ? `${value.name}${value.cityName ? ` (${value.iataCode})` : ` - ${value.iataCode}`}` 
+    : query;
 
   return (
     <div ref={wrapperRef} className={cn("relative", className)}>
