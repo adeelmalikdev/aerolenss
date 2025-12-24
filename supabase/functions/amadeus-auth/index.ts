@@ -13,6 +13,19 @@ serve(async (req) => {
   }
 
   try {
+    // Verify this is an internal request with service role key
+    // This prevents external callers from obtaining Amadeus tokens
+    const authHeader = req.headers.get('Authorization');
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!authHeader || !serviceRoleKey || !authHeader.includes(serviceRoleKey)) {
+      console.error('Unauthorized access attempt to amadeus-auth - missing or invalid service role key');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }), 
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const AMADEUS_API_KEY = Deno.env.get('AMADEUS_API_KEY');
     const AMADEUS_API_SECRET = Deno.env.get('AMADEUS_API_SECRET');
 
