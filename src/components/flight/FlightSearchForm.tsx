@@ -81,11 +81,11 @@ export function FlightSearchForm({
   };
 
   return (
-    <div className="w-full bg-card rounded-xl shadow-lg p-6 space-y-4">
+    <div className="w-full space-y-4">
       <Tabs value={tripType} onValueChange={(v) => setTripType(v as any)}>
-        <TabsList className="bg-muted">
-          <TabsTrigger value="round-trip">Round Trip</TabsTrigger>
-          <TabsTrigger value="one-way">One Way</TabsTrigger>
+        <TabsList className="bg-muted/50 h-10">
+          <TabsTrigger value="round-trip" className="data-[state=active]:bg-background">Round Trip</TabsTrigger>
+          <TabsTrigger value="one-way" className="data-[state=active]:bg-background">One Way</TabsTrigger>
         </TabsList>
       </Tabs>
 
