@@ -4,7 +4,7 @@ project_id = "ryzspjrucbyprnxfhjvl"
 verify_jwt = false
 
 [functions.search-airports]
-verify_jwt = false
+verify_jwt = true
 
 [functions.search-flights]
-verify_jwt = false
+verify_jwt = true
