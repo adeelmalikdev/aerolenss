@@ -15,6 +15,7 @@ import Help from "./pages/Help";
 import Terms from "./pages/Terms";
 import Hotels from "./pages/Hotels";
 import NotFound from "./pages/NotFound";
+
 const queryClient = new QueryClient();
 
 const App = () => (
