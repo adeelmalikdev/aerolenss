@@ -16,6 +16,11 @@ const searchAirportsSchema = z.object({
     .transform(val => val.trim())
 });
 
+// Simple in-memory cache to reduce calls to the Amadeus API (helps avoid rate limits)
+const cache = new Map<string, { data: unknown; expiresAt: number }>();
+const CACHE_TTL_MS = 5 * 60 * 1000;
+let rateLimitUntil = 0;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -51,6 +56,23 @@ serve(async (req) => {
 
     const validatedKeyword = validationResult.data.keyword;
 
+    // Serve from cache when possible
+    const cached = cache.get(validatedKeyword.toLowerCase());
+    if (cached && cached.expiresAt > Date.now()) {
+      return new Response(JSON.stringify(cached.data), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // If we recently got rate-limited, do not call Amadeus again yet
+    if (Date.now() < rateLimitUntil) {
+      return new Response(JSON.stringify({ data: [], rateLimited: true }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Get auth token from internal amadeus-auth function
     const authResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/amadeus-auth`, {
       method: 'POST',
@@ -85,6 +107,7 @@ serve(async (req) => {
       // Handle rate limiting gracefully - return empty results instead of error
       if (response.status === 429) {
         console.log('Rate limited by Amadeus API, returning empty results');
+        rateLimitUntil = Date.now() + 60 * 1000;
         return new Response(JSON.stringify({ data: [], rateLimited: true }), {
           status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -98,6 +121,8 @@ serve(async (req) => {
 
     const data = await response.json();
     console.log('Found airports:', data.data?.length || 0);
+
+    cache.set(validatedKeyword.toLowerCase(), { data, expiresAt: Date.now() + CACHE_TTL_MS });
 
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

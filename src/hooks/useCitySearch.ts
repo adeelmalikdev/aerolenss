@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { CitySearchResult } from '@/types/hotel';
 
 export function useCitySearch(query: string) {
@@ -23,6 +24,12 @@ export function useCitySearch(query: string) {
       });
 
       if (fnError) throw fnError;
+
+      if (data?.rateLimited) {
+        toast.error('City search is temporarily rate-limited. Please wait a minute and try again.');
+        setCities([]);
+        return;
+      }
 
       // Filter to get unique cities
       const cityMap = new Map<string, CitySearchResult>();
@@ -49,7 +56,7 @@ export function useCitySearch(query: string) {
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
       searchCities(query);
-    }, 300);
+    }, 600);
 
     return () => clearTimeout(debounceTimer);
   }, [query, searchCities]);
