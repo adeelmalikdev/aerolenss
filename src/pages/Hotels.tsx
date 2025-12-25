@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Helmet } from 'react-helmet-async';
+import { useState, useEffect } from 'react';
 import { Footer } from '@/components/home/Footer';
 import { HotelSearchForm } from '@/components/hotel/HotelSearchForm';
 import { HotelResults } from '@/components/hotel/HotelResults';
@@ -12,6 +11,10 @@ export default function Hotels() {
   const [selectedHotel, setSelectedHotel] = useState<HotelOffer | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
 
+  useEffect(() => {
+    document.title = 'Hotel Booking - Find & Book Hotels Worldwide | SkyWings';
+  }, []);
+
   const handleSearch = (params: HotelSearchParams) => {
     setHasSearched(true);
     searchHotels(params);
@@ -19,14 +22,6 @@ export default function Hotels() {
 
   return (
     <>
-      <Helmet>
-        <title>Hotel Booking - Find & Book Hotels Worldwide | SkyWings</title>
-        <meta 
-          name="description" 
-          content="Search and book hotels worldwide with SkyWings. Find the best deals on accommodation for your next trip." 
-        />
-      </Helmet>
-
       <main className="min-h-screen bg-background pt-20">
         {/* Hero section */}
         <section className="bg-gradient-to-br from-primary/10 to-primary/5 py-12">
