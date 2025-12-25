@@ -82,8 +82,16 @@ serve(async (req) => {
 
     if (!response.ok) {
       console.error('Amadeus API error:', response.status);
+      // Handle rate limiting gracefully - return empty results instead of error
+      if (response.status === 429) {
+        console.log('Rate limited by Amadeus API, returning empty results');
+        return new Response(JSON.stringify({ data: [], rateLimited: true }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
       return new Response(JSON.stringify({ error: 'Search failed', data: [] }), {
-        status: 502,
+        status: 200, // Return 200 with empty data instead of 502 to avoid breaking UI
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
