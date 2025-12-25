@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { Airport } from '@/types/flight';
 
 export function useAirportSearch() {
@@ -19,6 +20,12 @@ export function useAirportSearch() {
       });
 
       if (error) throw error;
+
+      if (data?.rateLimited) {
+        toast.error('Search is temporarily rate-limited. Please wait a minute and try again.');
+        setAirports([]);
+        return;
+      }
 
       const formattedAirports: Airport[] = (data.data || []).map((item: any) => ({
         iataCode: item.iataCode,

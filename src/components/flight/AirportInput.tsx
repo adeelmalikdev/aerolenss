@@ -36,7 +36,7 @@ export function AirportInput({ value, onChange, placeholder, icon = 'departure',
       if (query.length >= 2) {
         searchAirports(query);
       }
-    }, 300);
+    }, 600);
 
     return () => clearTimeout(debounce);
   }, [query, searchAirports]);
