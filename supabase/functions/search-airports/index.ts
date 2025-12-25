@@ -72,7 +72,7 @@ serve(async (req) => {
 
     console.log('Searching airports for:', validatedKeyword);
     const response = await fetch(
-      `https://test.api.amadeus.com/v1/reference-data/locations?subType=AIRPORT,CITY&keyword=${encodeURIComponent(validatedKeyword)}&page[limit]=10`,
+      `https://test.api.amadeus.com/v1/reference-data/locations?subType=AIRPORT,CITY&keyword=${encodeURIComponent(validatedKeyword)}&page[limit]=25&view=FULL`,
       {
         headers: {
           'Authorization': `Bearer ${access_token}`,
