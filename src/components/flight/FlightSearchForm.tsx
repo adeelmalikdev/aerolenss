@@ -89,203 +89,209 @@ export function FlightSearchForm({
         </TabsList>
       </Tabs>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4">
-        {/* Origin & Destination */}
-        <div className="lg:col-span-5 flex items-center gap-2">
-          <AirportInput
-            value={origin}
-            onChange={setOrigin}
-            placeholder="Where from?"
-            icon="departure"
-            className="flex-1"
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleSwapAirports}
-            className="shrink-0"
-            aria-label="Swap origin and destination"
-          >
-            <ArrowRightLeft className="h-4 w-4" aria-hidden="true" />
-          </Button>
-          <AirportInput
-            value={destination}
-            onChange={setDestination}
-            placeholder="Where to?"
-            icon="arrival"
-            className="flex-1"
-          />
-        </div>
+      <div className="grid grid-cols-1 gap-4">
+        {/* Row 1: Origin, Destination, Dates */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4">
+          {/* Origin & Destination */}
+          <div className="lg:col-span-5 flex items-center gap-2">
+            <AirportInput
+              value={origin}
+              onChange={setOrigin}
+              placeholder="Where from?"
+              icon="departure"
+              className="flex-1"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleSwapAirports}
+              className="shrink-0"
+              aria-label="Swap origin and destination"
+            >
+              <ArrowRightLeft className="h-4 w-4" aria-hidden="true" />
+            </Button>
+            <AirportInput
+              value={destination}
+              onChange={setDestination}
+              placeholder="Where to?"
+              icon="arrival"
+              className="flex-1"
+            />
+          </div>
 
-        {/* Dates */}
-        <div className="lg:col-span-4 flex gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "flex-1 h-12 justify-start text-left font-normal",
-                  !departureDate && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {departureDate ? format(departureDate, "MMM d, yyyy") : "Departure"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={departureDate}
-                onSelect={setDepartureDate}
-                initialFocus
-                disabled={(date) => date < new Date()}
-              />
-            </PopoverContent>
-          </Popover>
-
-          {tripType === 'round-trip' && (
+          {/* Dates */}
+          <div className="lg:col-span-4 flex gap-2">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   className={cn(
                     "flex-1 h-12 justify-start text-left font-normal",
-                    !returnDate && "text-muted-foreground"
+                    !departureDate && "text-muted-foreground"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {returnDate ? format(returnDate, "MMM d, yyyy") : "Return"}
+                  {departureDate ? format(departureDate, "MMM d, yyyy") : "Departure"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={returnDate}
-                  onSelect={setReturnDate}
+                  selected={departureDate}
+                  onSelect={setDepartureDate}
                   initialFocus
-                  disabled={(date) => date < (departureDate || new Date())}
+                  disabled={(date) => date < new Date()}
                 />
               </PopoverContent>
             </Popover>
-          )}
+
+            {tripType === 'round-trip' && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "flex-1 h-12 justify-start text-left font-normal",
+                      !returnDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {returnDate ? format(returnDate, "MMM d, yyyy") : "Return"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={returnDate}
+                    onSelect={setReturnDate}
+                    initialFocus
+                    disabled={(date) => date < (departureDate || new Date())}
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
+          </div>
+
+          {/* Passengers */}
+          <div className="lg:col-span-3">
+            <Popover open={passengersOpen} onOpenChange={setPassengersOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full h-12 justify-start">
+                  <Users className="mr-2 h-4 w-4" />
+                  {totalPassengers} {totalPassengers === 1 ? 'Traveler' : 'Travelers'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-72" align="end">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Adults</p>
+                      <p className="text-sm text-muted-foreground">12+ years</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setAdults(Math.max(1, adults - 1))}
+                        disabled={adults <= 1}
+                        aria-label="Decrease adults"
+                      >
+                        -
+                      </Button>
+                      <span className="w-8 text-center" aria-live="polite">{adults}</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setAdults(Math.min(9, adults + 1))}
+                        disabled={adults >= 9}
+                        aria-label="Increase adults"
+                      >
+                        +
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Children</p>
+                      <p className="text-sm text-muted-foreground">2-11 years</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setChildren(Math.max(0, children - 1))}
+                        disabled={children <= 0}
+                        aria-label="Decrease children"
+                      >
+                        -
+                      </Button>
+                      <span className="w-8 text-center" aria-live="polite">{children}</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setChildren(Math.min(9, children + 1))}
+                        disabled={children >= 9}
+                        aria-label="Increase children"
+                      >
+                        +
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Infants</p>
+                      <p className="text-sm text-muted-foreground">Under 2 years</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setInfants(Math.max(0, infants - 1))}
+                        disabled={infants <= 0}
+                        aria-label="Decrease infants"
+                      >
+                        -
+                      </Button>
+                      <span className="w-8 text-center" aria-live="polite">{infants}</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setInfants(Math.min(adults, infants + 1))}
+                        disabled={infants >= adults}
+                        aria-label="Increase infants"
+                      >
+                        +
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t">
+                    <Select value={cabinClass} onValueChange={(v: any) => setCabinClass(v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select class" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ECONOMY">Economy</SelectItem>
+                        <SelectItem value="PREMIUM_ECONOMY">Premium Economy</SelectItem>
+                        <SelectItem value="BUSINESS">Business</SelectItem>
+                        <SelectItem value="FIRST">First Class</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
 
-        {/* Passengers & Class */}
-        <div className="lg:col-span-3 flex gap-2">
-          <Popover open={passengersOpen} onOpenChange={setPassengersOpen}>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="flex-1 h-12 justify-start">
-                <Users className="mr-2 h-4 w-4" />
-                {totalPassengers} {totalPassengers === 1 ? 'Traveler' : 'Travelers'}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72" align="end">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Adults</p>
-                    <p className="text-sm text-muted-foreground">12+ years</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setAdults(Math.max(1, adults - 1))}
-                      disabled={adults <= 1}
-                      aria-label="Decrease adults"
-                    >
-                      -
-                    </Button>
-                    <span className="w-8 text-center" aria-live="polite">{adults}</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setAdults(Math.min(9, adults + 1))}
-                      disabled={adults >= 9}
-                      aria-label="Increase adults"
-                    >
-                      +
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Children</p>
-                    <p className="text-sm text-muted-foreground">2-11 years</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setChildren(Math.max(0, children - 1))}
-                      disabled={children <= 0}
-                      aria-label="Decrease children"
-                    >
-                      -
-                    </Button>
-                    <span className="w-8 text-center" aria-live="polite">{children}</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setChildren(Math.min(9, children + 1))}
-                      disabled={children >= 9}
-                      aria-label="Increase children"
-                    >
-                      +
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Infants</p>
-                    <p className="text-sm text-muted-foreground">Under 2 years</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setInfants(Math.max(0, infants - 1))}
-                      disabled={infants <= 0}
-                      aria-label="Decrease infants"
-                    >
-                      -
-                    </Button>
-                    <span className="w-8 text-center" aria-live="polite">{infants}</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setInfants(Math.min(adults, infants + 1))}
-                      disabled={infants >= adults}
-                      aria-label="Increase infants"
-                    >
-                      +
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t">
-                  <Select value={cabinClass} onValueChange={(v: any) => setCabinClass(v)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select class" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ECONOMY">Economy</SelectItem>
-                      <SelectItem value="PREMIUM_ECONOMY">Premium Economy</SelectItem>
-                      <SelectItem value="BUSINESS">Business</SelectItem>
-                      <SelectItem value="FIRST">First Class</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-
+        {/* Row 2: Search Button */}
+        <div className="flex gap-2">
           <Button
             onClick={handleSearch}
             disabled={!isValid || loading}
-            className="h-12 px-8"
+            className="flex-1 h-12"
           >
             <Search className="h-4 w-4 mr-2" />
             {loading ? 'Searching...' : 'Search'}
