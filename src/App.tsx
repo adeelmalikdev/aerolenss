@@ -13,6 +13,9 @@ import Privacy from "./pages/Privacy";
 import Help from "./pages/Help";
 import Terms from "./pages/Terms";
 import Hotels from "./pages/Hotels";
+import Bookings from "./pages/Bookings";
+import Alerts from "./pages/Alerts";
+import SavedSearches from "./pages/SavedSearches";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +37,9 @@ const App = () => (
             <Route path="/help" element={<Help />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/hotels" element={<Hotels />} />
+            <Route path="/bookings" element={<Bookings />} />
+            <Route path="/alerts" element={<Alerts />} />
+            <Route path="/saved-searches" element={<SavedSearches />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
