@@ -8,7 +8,7 @@ import {
   Settings, 
   LogOut, 
   ChevronRight,
-  Plane 
+  Heart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -21,15 +21,16 @@ import {
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/hooks/useAuth';
-import { useBookings, Booking } from '@/hooks/useBookings';
-import { usePriceAlerts, PriceAlert } from '@/hooks/usePriceAlerts';
+import { useBookings } from '@/hooks/useBookings';
+import { usePriceAlerts } from '@/hooks/usePriceAlerts';
+import { useSavedSearches } from '@/hooks/useSavedSearches';
 
 export function UserDrawer() {
   const { user, signOut } = useAuth();
   const { bookings } = useBookings();
   const { alerts } = usePriceAlerts();
+  const { savedSearches } = useSavedSearches();
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
@@ -56,6 +57,7 @@ export function UserDrawer() {
 
   const activeAlerts = alerts.filter(a => a.is_active);
   const confirmedBookings = bookings.filter(b => b.status === 'confirmed');
+  const priceDroppedAlerts = alerts.filter(a => a.current_price && a.current_price <= a.target_price);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -90,7 +92,7 @@ export function UserDrawer() {
           </div>
         </SheetHeader>
 
-        <div className="mt-6 space-y-6">
+        <div className="mt-6 space-y-2">
           {/* Theme Toggle */}
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
             <div className="flex items-center gap-3">
@@ -111,135 +113,91 @@ export function UserDrawer() {
             </Button>
           </div>
 
-          <Separator />
+          <Separator className="my-4" />
 
-          {/* Quick Access - My Bookings */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Ticket className="h-4 w-4 text-primary" />
-                <span className="font-medium">My Bookings</span>
-              </div>
+          {/* Navigation Links */}
+          <Link 
+            to="/bookings" 
+            onClick={() => setOpen(false)}
+            className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Ticket className="h-5 w-5 text-primary" />
+              <span className="font-medium">My Bookings</span>
+            </div>
+            <div className="flex items-center gap-2">
               {confirmedBookings.length > 0 && (
                 <Badge variant="secondary">{confirmedBookings.length}</Badge>
               )}
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </div>
-            
-            <ScrollArea className="max-h-[140px]">
-              {confirmedBookings.length > 0 ? (
-                <div className="space-y-2">
-                  {confirmedBookings.slice(0, 3).map((booking) => (
-                    <BookingPreviewCard key={booking.id} booking={booking} />
-                  ))}
-                  {confirmedBookings.length > 3 && (
-                    <p className="text-xs text-muted-foreground text-center py-1">
-                      +{confirmedBookings.length - 3} more
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground py-2">No upcoming bookings</p>
+          </Link>
+
+          <Link 
+            to="/alerts" 
+            onClick={() => setOpen(false)}
+            className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Bell className="h-5 w-5 text-primary" />
+              <span className="font-medium">Price Alerts</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {priceDroppedAlerts.length > 0 && (
+                <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                  {priceDroppedAlerts.length} dropped!
+                </Badge>
               )}
-            </ScrollArea>
-          </div>
-
-          <Separator />
-
-          {/* Quick Access - Price Alerts */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Bell className="h-4 w-4 text-primary" />
-                <span className="font-medium">Price Alerts</span>
-              </div>
-              {activeAlerts.length > 0 && (
+              {activeAlerts.length > 0 && priceDroppedAlerts.length === 0 && (
                 <Badge variant="secondary">{activeAlerts.length}</Badge>
               )}
-            </div>
-            
-            <ScrollArea className="max-h-[140px]">
-              {activeAlerts.length > 0 ? (
-                <div className="space-y-2">
-                  {activeAlerts.slice(0, 3).map((alert) => (
-                    <AlertPreviewCard key={alert.id} alert={alert} />
-                  ))}
-                  {activeAlerts.length > 3 && (
-                    <p className="text-xs text-muted-foreground text-center py-1">
-                      +{activeAlerts.length - 3} more
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground py-2">No active alerts</p>
-              )}
-            </ScrollArea>
-          </div>
-
-          <Separator />
-
-          {/* Navigation Links */}
-          <div className="space-y-1">
-            <Link 
-              to="/profile" 
-              onClick={() => setOpen(false)}
-              className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <Settings className="h-5 w-5 text-muted-foreground" />
-                <span>Profile & Settings</span>
-              </div>
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </Link>
+            </div>
+          </Link>
 
-            <button
-              onClick={() => {
-                signOut();
-                setOpen(false);
-              }}
-              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/10 transition-colors text-destructive"
-            >
-              <LogOut className="h-5 w-5" />
-              <span>Sign Out</span>
-            </button>
-          </div>
+          <Link 
+            to="/saved-searches" 
+            onClick={() => setOpen(false)}
+            className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Heart className="h-5 w-5 text-primary" />
+              <span className="font-medium">Saved Searches</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {savedSearches.length > 0 && (
+                <Badge variant="secondary">{savedSearches.length}</Badge>
+              )}
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </Link>
+
+          <Separator className="my-4" />
+
+          <Link 
+            to="/profile" 
+            onClick={() => setOpen(false)}
+            className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Settings className="h-5 w-5 text-muted-foreground" />
+              <span>Profile & Settings</span>
+            </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          </Link>
+
+          <button
+            onClick={() => {
+              signOut();
+              setOpen(false);
+            }}
+            className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-destructive/10 transition-colors text-destructive"
+          >
+            <LogOut className="h-5 w-5" />
+            <span>Sign Out</span>
+          </button>
         </div>
       </SheetContent>
     </Sheet>
-  );
-}
-
-function BookingPreviewCard({ booking }: { booking: Booking }) {
-  const flightData = booking.flight_data as Record<string, unknown>;
-  const origin = (flightData?.origin as string) || 'N/A';
-  const destination = (flightData?.destination as string) || 'N/A';
-
-  return (
-    <div className="p-2 rounded-md bg-muted/30 border">
-      <div className="flex items-center gap-2 text-sm">
-        <span className="font-medium">{origin}</span>
-        <Plane className="h-3 w-3 text-muted-foreground" />
-        <span className="font-medium">{destination}</span>
-        <span className="ml-auto text-xs font-mono text-muted-foreground">
-          {booking.booking_reference}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function AlertPreviewCard({ alert }: { alert: PriceAlert }) {
-  const priceDropped = alert.current_price && alert.current_price <= alert.target_price;
-
-  return (
-    <div className={`p-2 rounded-md border ${priceDropped ? 'bg-green-50 dark:bg-green-950/20 border-green-500' : 'bg-muted/30'}`}>
-      <div className="flex items-center gap-2 text-sm">
-        <span className="font-medium">{alert.origin_code}</span>
-        <Plane className="h-3 w-3 text-muted-foreground" />
-        <span className="font-medium">{alert.destination_code}</span>
-        <span className={`ml-auto text-xs font-medium ${priceDropped ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
-          ${alert.target_price}
-        </span>
-      </div>
-    </div>
   );
 }
