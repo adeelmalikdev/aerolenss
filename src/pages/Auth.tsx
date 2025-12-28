@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Plane, Loader2 } from 'lucide-react';
+import { OtpVerification } from '@/components/auth/OtpVerification';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -15,6 +16,10 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  
+  // OTP verification state
+  const [showOtpVerification, setShowOtpVerification] = useState(false);
+  const [signupEmail, setSignupEmail] = useState('');
 
   useEffect(() => {
     document.title = 'Sign In | AeroLens';
@@ -49,6 +54,8 @@ const Auth = () => {
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
           toast.error('Invalid email or password');
+        } else if (error.message.includes('Email not confirmed')) {
+          toast.error('Please verify your email before signing in');
         } else {
           toast.error(error.message);
         }
@@ -85,13 +92,67 @@ const Auth = () => {
           toast.error(error.message);
         }
       } else {
-        toast.success('Account created successfully!');
+        // Store email for OTP verification and show OTP form
+        setSignupEmail(email);
+        setShowOtpVerification(true);
+        toast.success('Verification code sent to your email!');
       }
     } catch (error) {
       toast.error('An unexpected error occurred');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleVerifyOtp = async (otp: string) => {
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: signupEmail,
+        token: otp,
+        type: 'signup',
+      });
+
+      if (error) {
+        if (error.message.includes('expired')) {
+          toast.error('Code expired. Please request a new one.');
+        } else if (error.message.includes('invalid')) {
+          toast.error('Invalid verification code. Please try again.');
+        } else {
+          toast.error(error.message);
+        }
+      } else {
+        toast.success('Email verified! Welcome to AeroLens!');
+        // Auth state listener will handle navigation
+      }
+    } catch (error) {
+      toast.error('An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: signupEmail,
+      });
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success('New verification code sent!');
+      }
+    } catch (error) {
+      toast.error('Failed to resend code');
+    }
+  };
+
+  const handleBackFromOtp = () => {
+    setShowOtpVerification(false);
+    setSignupEmail('');
   };
 
   return (
@@ -102,94 +163,109 @@ const Auth = () => {
             <Plane className="h-8 w-8 text-primary" aria-hidden="true" />
             <CardTitle className="text-2xl">AeroLens</CardTitle>
           </div>
-          <CardDescription>Sign in to save your searches and preferences</CardDescription>
+          <CardDescription>
+            {showOtpVerification 
+              ? 'Verify your email to complete signup'
+              : 'Sign in to save your searches and preferences'
+            }
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
+          {showOtpVerification ? (
+            <OtpVerification
+              email={signupEmail}
+              onVerify={handleVerifyOtp}
+              onResend={handleResendOtp}
+              onBack={handleBackFromOtp}
+              isLoading={loading}
+            />
+          ) : (
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Sign In</TabsTrigger>
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    autoComplete="email"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Password</Label>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    autoComplete="current-password"
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" /> : null}
-                  Sign In
-                </Button>
-              </form>
-            </TabsContent>
+              <TabsContent value="login">
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="login-email">Email</Label>
+                    <Input
+                      id="login-email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      autoComplete="email"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="login-password">Password</Label>
+                    <Input
+                      id="login-password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      autoComplete="current-password"
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" /> : null}
+                    Sign In
+                  </Button>
+                </form>
+              </TabsContent>
 
-            <TabsContent value="signup">
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name">Full Name</Label>
-                  <Input
-                    id="signup-name"
-                    type="text"
-                    placeholder="John Doe"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                    autoComplete="name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    autoComplete="email"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                    autoComplete="new-password"
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" /> : null}
-                  Create Account
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+              <TabsContent value="signup">
+                <form onSubmit={handleSignup} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-name">Full Name</Label>
+                    <Input
+                      id="signup-name"
+                      type="text"
+                      placeholder="John Doe"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      required
+                      autoComplete="name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email">Email</Label>
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      autoComplete="email"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password">Password</Label>
+                    <Input
+                      id="signup-password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      autoComplete="new-password"
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" /> : null}
+                    Create Account
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
+          )}
         </CardContent>
       </Card>
     </main>
