@@ -50,18 +50,21 @@ export type Database = {
           id: string
           is_active: boolean | null
           subscribed_at: string | null
+          unsubscribe_token: string
         }
         Insert: {
           email: string
           id?: string
           is_active?: boolean | null
           subscribed_at?: string | null
+          unsubscribe_token?: string
         }
         Update: {
           email?: string
           id?: string
           is_active?: boolean | null
           subscribed_at?: string | null
+          unsubscribe_token?: string
         }
         Relationships: []
       }
@@ -172,7 +175,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      unsubscribe_newsletter: {
+        Args: { p_email: string; p_token: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
